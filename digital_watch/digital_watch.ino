@@ -1,33 +1,44 @@
 // Digital Watch TFT 480x320 
 #include <UTFTGLUE.h>              //use GLUE class and constructor
+
 UTFTGLUE myGLCD(0,A2,A1,A3,A4,A0); //all dummy args
 
-// Declare which fonts we will be using
-//extern uint8_t SmallFont[];      //GLUE defines as GFXFont ref
+const int x0 = 0;
+const int y0 = 0;
+const int width = 480;
+const int height = 320;
+const String startDate = "Wed-03/01/2024-22/40/00";
+unsigned long previousMillis = 0;
+const int interval = 1000;
+String dateArr[3];
 
-// Set the pins to the correct ones for your development shield
-// ------------------------------------------------------------
-// Arduino Uno / 2009:
-// -------------------
-// Standard Arduino Uno/2009 shield            : <display model>,A5,A4,A3,A2
-// DisplayModule Arduino Uno TFT shield        : <display model>,A5,A4,A3,A2
-//
-// Arduino Mega:
-// -------------------
-// Standard Arduino Mega/Due shield            : <display model>,38,39,40,41
-// CTE TFT LCD/SD Shield for Arduino Mega      : <display model>,38,39,40,41
-//
-// Remember to change the model parameter to suit your display module!
-//UTFT myGLCD(CTE32HR,38,39,40,41);
+void extractDateAndTime(String currentDate, String dateArray[]) {
+  // Find the positions of hyphens
+  int firstHyphen = currentDate.indexOf('-');
+  int secondHyphen = currentDate.indexOf('-', firstHyphen + 1);
+
+  // Extract date and time
+  dateArray[0] = currentDate.substring(0, firstHyphen);
+  dateArray[1] = currentDate.substring(firstHyphen + 1, secondHyphen);
+  dateArray[2] = currentDate.substring(secondHyphen + 1);
+}
+
 
 void setup()
 {
+  Serial.begin(9600);
   randomSeed(analogRead(0));
   
 // Setup the LCD
   myGLCD.InitLCD();
-  myGLCD.setFont(SmallFont);
+  myGLCD.setFont(BigFont);
+
+  extractDateAndTime(startDate, dateArr);
+
+  myGLCD.setColor(255,255,255);
+  myGLCD.fillRect(x0,y0,width,height);
 }
+
 
 void loop()
 {
@@ -36,34 +47,21 @@ void loop()
   int y, y2;
   int r;
 
-// Clear the screen and draw the frame
-  myGLCD.clrScr();
-  
-  myGLCD.setColor(0,0,0);
-  myGLCD.fillRect(1,15,478,304);
+  unsigned long currentMillis = millis();
 
-  for (int i=0; i<10000; i++)
-  {
-    myGLCD.setColor(random(255), random(255), random(255));
-    myGLCD.drawPixel(2+random(476), 16+random(289));
+  if (currentMillis - previousMillis >= interval) {
+    previousMillis = currentMillis;
+    extractDateAndTime(startDate, dateArr);
+
+    myGLCD.setColor(0, 0, 0);
+    myGLCD.setBackColor(255, 255, 255);
+    myGLCD.print(dateArr[0], CENTER, 93);
+    myGLCD.print(dateArr[1], CENTER, 119);
+    myGLCD.print(dateArr[2], CENTER, 152);
+
+    Serial.println(dateArr[0]);
+    Serial.println(dateArr[1]);
+    Serial.println(dateArr[2]);
   }
 
-  delay(2000);
-
-  myGLCD.fillScr(0, 0, 255);
-  myGLCD.setColor(255, 0, 0);
-  myGLCD.fillRoundRect(160, 70, 319, 169);
-  
-  myGLCD.setColor(255, 255, 255);
-  myGLCD.setBackColor(255, 0, 0);
-  myGLCD.print("That's it!", CENTER, 93);
-  myGLCD.print("Restarting in a", CENTER, 119);
-  myGLCD.print("few seconds...", CENTER, 132);
-  
-  myGLCD.setColor(0, 255, 0);
-  myGLCD.setBackColor(0, 0, 255);
-  myGLCD.print("Runtime: (msecs)", CENTER, 290);
-  myGLCD.printNumI(millis(), CENTER, 305);
-  
-  delay (10000);
 }
