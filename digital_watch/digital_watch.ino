@@ -5,7 +5,7 @@ UTFTGLUE myGLCD(0,A2,A1,A3,A4,A0); //all dummy args
 
 const int maxWidth = 480;
 const int maxHeight = 320;
-const String startDate = "Wed-03/01/2024-22/40/00";
+const String startDate = "Mon-15/01/2024-22/24/00";
 unsigned long previousMillis = 0;
 const int interval = 1000;
 const int xClock = 120;
@@ -15,7 +15,7 @@ String dateInWeeks[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
 
 // Function to find the index of a string in an array
 int findDayIndex(String date, String dateArray[]) {
-  int size = sizeof(dateInWeeks) / sizeof(dateInWeeks[0]);`
+  int size = sizeof(dateInWeeks) / sizeof(dateInWeeks[0]);
 
   for (int i = 0; i < size; i++) {
     if (date.equals(dateArray[i])) {
@@ -157,7 +157,8 @@ void setColor(String color) {
 
 
 void showTime() {
-  String hh = convertToTextFormat(dateAndTime[4]);
+  int hour = dateAndTime[4];
+  String hh = convertToTextFormat(hour);
   String mm = convertToTextFormat(dateAndTime[5]);
   String ss = convertToTextFormat(dateAndTime[6]);
 
@@ -166,11 +167,21 @@ void showTime() {
 
   myGLCD.print( hh + ':' + mm, xClock - 30, yClock - 20);
   myGLCD.print( ss, xClock - 10, yClock + 30);
+
+  if(hour > 0 && hour <= 6) {
+    myGLCD.print("Good night Coffee429", CENTER, maxHeight - 50);
+  } else if (hour <= 12) {
+    myGLCD.print("Good morning Coffee429", CENTER, maxHeight - 50);
+  } else if (hour <= 18) {
+    myGLCD.print("Good afternoon Coffee429", CENTER, maxHeight - 50);
+  } else {
+    myGLCD.print("Good evening Coffee429", CENTER, maxHeight - 50);
+  }
 }
 
 void showCalendar() {
-  setBackgroundColor("WHITE");
-  setColor("BLACK");
+  setBackgroundColor("BLACK");
+  setColor("WHITE");
 
   int calendarW = maxWidth * 3/4 - 30;
   int calendarH = maxHeight/3;
@@ -189,18 +200,18 @@ void setup()
   Serial.begin(9600);
   randomSeed(analogRead(0));
   
-// Setup the LCD
+  // Setup LCD
   myGLCD.InitLCD();
-  myGLCD.setFont(BigFont);
+  // myGLCD.setFont(BigFont);
+  myGLCD.setTextSize(2);
 
   extractDateTimeComponents(startDate, dateAndTime);
 
-  setColor("WHITE");
+  setColor("BLACK");
   myGLCD.fillRect(0, 0, maxWidth, maxHeight);
 
-  setBackgroundColor("WHITE");
-  setColor("BLACK");
-  myGLCD.print("Hi boss", CENTER, maxHeight - 50);
+  setBackgroundColor("BLACK");
+  setColor("WHITE");
 
   drawClock(); 
 }
